@@ -2,16 +2,16 @@
 
 Compte rendu de Nolan Jacquot et Gabriel Guiffault
 
-2. TP 1 - Bus I2C
+                                                       TP 1 - Bus I2C
 
-Objectif: Interfacer un STM32 avec des capteurs I2C
+Objectif: Interfacer un STM32 avec des capteurs I²C
 
 TP1
 
-La première étape est de mettre en place la communication entre le microcontrôleur et les capteurs (température, pression, accéléromètre...) via  le bus I2C.
-Le capteur comporte 2 composants I2C, qui partagent le même bus. Le STM32 jouera le rôle de Master sur le bus.Le code du STM32 sera écrit en langage C, en utilisant la bibliothèque HAL.
+La première étape est de mettre en place la communication entre le microcontrôleur et les capteurs (température, pression, accéléromètre...) via  le bus I²C.
+Le capteur comporte 2 composants I²C, qui partagent le même bus. Le STM32 jouera le rôle de Master sur le bus.Le code du STM32 sera écrit en langage C, en utilisant la bibliothèque HAL.
 
-2.1. Capteur BMP280
+2.1. Capteur BMP280 
 
 Mise en œuvre du BMP280
 À partir de la datasheet du BMP280, nous identifions les éléments suivants:
@@ -195,11 +195,11 @@ void bmp280_read_raw_data(int32_t *temperature, int32_t *pressure)
 ```
 Calcul des températures et des pression compensées
 
-Retrouvez dans la datasheet du STM32 le code permettant de compenser la température et la pression à l'aide des valeurs de l'étalonnage au format entier 32 bits (on utilisera pas les flottants pour des problèmes de performance).
+Il faut retrouvez dans la datasheet du STM32 le code permettant de compenser la température et la pression à l'aide des valeurs de l'étalonnage au format entier 32 bits (on utilisera pas les flottants pour des problèmes de performance).
 
-Transmettez sur le port série les valeurs compensés de température et de pression sous un format lisible.
+Nous transmettons sur le port série les valeurs compensés de température et de pression sous un format lisible.
 
-Nous nous basons sur le code d'exemple si dessous fourni par la documentation du composant (page 22)
+Nous nous basons sur le code d'exemple si dessous fourni par la documentation du composant (page 22).
 ```C
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
 // t_fine carries fine temperature as global value
@@ -239,7 +239,7 @@ p = ((p + var1 + var2) >> 8) + (((BMP280_S64_t)dig_P7)<<4);
 return (BMP280_U32_t)p;
 ```
 
-Autre code d'exemple fourni par la documentation du composant (page 45)
+Autre code d'exemple fourni par la documentation du composant (page 45).
 
 ```C
 // Returns temperature in DegC, double precision. Output value of “51.23” equals 51.23 DegC.
@@ -255,6 +255,8 @@ t_fine = (BMP280_S32_t)(var1 + var2);
 T = (var1 + var2) / 5120.0;
 return T;
 }
+```
+```C
 // Returns pressure in Pa as double. Output value of “96386.2” equals 96386.2 Pa = 963.862 hPa
 double bmp280_compensate_P_double(BMP280_S32_t adc_P)
 {
@@ -275,5 +277,60 @@ var1 = ((double)dig_P9) * p * p / 2147483648.0;
 var2 = p * ((double)dig_P8) / 32768.0;
 p = p + (var1 + var2 + ((double)dig_P7)) / 16.0;
 return p;
+}
+```
+Ci dessous le code final que nous avons fait fonctionner.
+```C
+int32_t bmp280_compensate_T(int32_t adc_T, BMP280_CalibData *calib, int32_t *t_fine)
+{
+   int32_t var1, var2, T;
+   var1 = ((((adc_T >> 3) - ((int32_t)calib->dig_T1 << 1))) * ((int32_t)calib->dig_T2)) >> 11;
+   var2 = (((((adc_T >> 4) - ((int32_t)calib->dig_T1)) * ((adc_T >> 4) - ((int32_t)calib->dig_T1))) >> 12) * ((int32_t)calib->dig_T3)) >> 14;
+   *t_fine = var1 + var2;  // Mise à jour de t_fine via le pointeur
+   T = (*t_fine * 5 + 128) >> 8;
+   return T;
+}
+```
+```C
+uint32_t bmp280_compensate_P(int32_t adc_P, BMP280_CalibData *calib, int32_t t_fine)
+{
+   int64_t var1, var2, p;
+   var1 = ((int64_t)t_fine) - 128000;
+   var2 = var1 * var1 * (int64_t)calib->dig_P6;
+   var2 = var2 + ((var1 * (int64_t)calib->dig_P5) << 17);
+   var2 = var2 + (((int64_t)calib->dig_P4) << 35);
+   var1 = ((var1 * var1 * (int64_t)calib->dig_P3) >> 8) + ((var1 * (int64_t)calib->dig_P2) << 12);
+   var1 = (((((int64_t)1) << 47) + var1)) * (int64_t)calib->dig_P1 >> 33;
+   if (var1 == 0) {
+       return 0;  // Éviter une division par zéro
+   }
+   p = 1048576 - adc_P;
+   p = (((p << 31) - var2) * 3125) / var1;
+   var1 = (((int64_t)calib->dig_P9) * (p >> 13) * (p >> 13)) >> 25;
+   var2 = (((int64_t)calib->dig_P8) * p) >> 19;
+   p = ((p + var1 + var2) >> 8) + (((int64_t)calib->dig_P7) << 4);
+   return (uint32_t)p;  // Pression en Pa au format Q24.8
+}
+```
+Dans le main
+```C
+   BMP280_CalibData calib_data;
+   int32_t temperature_raw, pressure_raw;
+   int32_t temperature_comp, t_fine;
+   uint32_t pressure_comp;
+   bmp280_read_calibration(&calib_data);
+
+ while (1)
+ {
+   /* USER CODE END WHILE */
+   /* USER CODE BEGIN 3 */
+     bmp280_read_raw_data(&temperature_raw, &pressure_raw);
+     temperature_comp = bmp280_compensate_T(temperature_raw, &calib_data, &t_fine);
+     pressure_comp = bmp280_compensate_P(pressure_raw, &calib_data, t_fine);
+     printf("Temperature compensee: %ld.%02ld C\r\n", temperature_comp / 100, temperature_comp % 100);
+     printf("Pression compensee: %lu Pa\r\n", pressure_comp / 256);
+     HAL_Delay(1000);  // Délai de 1 seconde
+ }
+ /* USER CODE END 3 */
 }
 ```
