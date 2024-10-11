@@ -42,6 +42,25 @@ Mise en œuvre du BMP280
 
 Configuration du STM32
 
+Pour ce TP, nous avons besoin des connections suivantes:
+Une liaison I²C. On utilisera les broches compatibles avec l'empreinte arduino (broches PB8 et PB9) 
+Une UART sur USB (UART2 sur les broches PA2 et PA3) 
 
+Test de la chaîne de compilation et communication UART sur USB avec un programme echo
+EXEMPLE CODE:
+while (1) {
+   uint8_t data;
+       /* Lire un caractère depuis l'UART */
+   if (HAL_UART_Receive(&huart2, &data, 1, HAL_MAX_DELAY) == HAL_OK) { 
+         /* Envoyer le caractère recu (echo) */ 
+      HAL_UART_Transmit(&huart2, &data, 1, HAL_MAX_DELAY);
+         /* Envoyer le caractère avec le printf */ 
+      printf("Received: %s\r\n", data);
+      /*Attention %c risque de ne pas marcher car si un seul caractere le buffer n'est jamais rempli*/
+       }
+    }
+ }
+
+Après Test on recois bien les caractere du printf. 
 
 
