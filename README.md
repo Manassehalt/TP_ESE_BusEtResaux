@@ -48,6 +48,7 @@ Une UART sur USB (UART2 sur les broches PA2 et PA3)
 
 Test de la chaîne de compilation et communication UART sur USB avec un programme echo
 EXEMPLE CODE:
+```C
 while (1) {
    uint8_t data;
        /* Lire un caractère depuis l'UART */
@@ -60,7 +61,45 @@ while (1) {
        }
     }
  }
+```
+2.3. Communication I²C
+Primitives I²C sous STM32_HAL
+Communication avec le BMP280
 
-Après Test on recois bien les caractere du printf. 
+Identification du BMP280
+
+L'identification du BMP280 consiste en la lecture du registre ID
+
+En I²C, la lecture se déroule de la manière suivante:
+envoyer l'adresse du registre ID
+recevoir 1 octet correspondant au contenu du registre
+```C
+#define BMP280_I2C_ADDRESS (0x77 << 1)
+```
+L'adresse est indiqué directement sur la seriographie attention au decalage de 1 bit!!
+```C
+uint8_t bmp280_read_id(void)
+{
+   uint8_t reg = 0xD0;
+   uint8_t id = 0;
+   HAL_I2C_Master_Transmit(&hi2c1, BMP280_I2C_ADDRESS, &reg, 1, HAL_MAX_DELAY);
+   HAL_I2C_Master_Receive(&hi2c1, BMP280_I2C_ADDRESS, &id, 1, HAL_MAX_DELAY);
+   return id;
+}
+
+```
+ Le registre "id" est 0xD0, et la valeur d'identification est 0x58.Il est preferable d'utiliser check ID plutot que read ID
+```C
 
 
+ uint8_t id = bmp280_read_id();
+    if (id == 0x58)
+    {
+        printf("BMP280 detected! ID: 0x%02X\r\n", id);
+    }
+    else
+    {
+        printf("Failed to detect BMP280. ID: 0x%02X\r\n", id);
+    }
+```
+Nous avons rajouté ce code pour verifier si l'ID étais bien presente
