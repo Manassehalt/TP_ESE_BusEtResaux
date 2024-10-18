@@ -1,12 +1,11 @@
 # TP_ESE_BusEtResaux
 
 Compte rendu de Nolan Jacquot et Gabriel Guiffault
-
-                                                       TP 1 - Bus I2C
+## TP 1 - Bus I2C
 
 Objectif: Interfacer un STM32 avec des capteurs I²C
 
-TP1
+
 
 La première étape est de mettre en place la communication entre le microcontrôleur et les capteurs (température, pression, accéléromètre...) via  le bus I²C.
 Le capteur comporte 2 composants I²C, qui partagent le même bus. Le STM32 jouera le rôle de Master sur le bus.Le code du STM32 sera écrit en langage C, en utilisant la bibliothèque HAL.
@@ -291,6 +290,7 @@ int32_t bmp280_compensate_T(int32_t adc_T, BMP280_CalibData *calib, int32_t *t_f
    return T;
 }
 ```
+Ce code retourne la temperature compensé en degré
 ```C
 uint32_t bmp280_compensate_P(int32_t adc_P, BMP280_CalibData *calib, int32_t t_fine)
 {
@@ -312,7 +312,9 @@ uint32_t bmp280_compensate_P(int32_t adc_P, BMP280_CalibData *calib, int32_t t_f
    return (uint32_t)p;  // Pression en Pa au format Q24.8
 }
 ```
-Dans le main
+Ce code retourne la pression compensé en Pascal
+
+Dans le main on envoie regulierement des actualisation des mesures
 ```C
    BMP280_CalibData calib_data;
    int32_t temperature_raw, pressure_raw;
@@ -334,3 +336,32 @@ Dans le main
  /* USER CODE END 3 */
 }
 ```
+
+## TP2 - Interfaçage STM32 - Raspberry
+
+3.1. Mise en route du Raspberry PI Zéro
+
+Configuration réseau du routeur utilisé en TP :
+
+SSID : ESE_Bus_Network
+Password : ilovelinux
+ou
+SSID : D060-2Ghz
+Password : ilovelinux
+
+Identifiant: nolan
+Mot de passe SSH: ESE
+
+3.2. Port Série Loopback
+
+Branchez le port série du Raspberry en boucle: RX sur TX.
+
+Utilisez le logiciel minicom sur le raspberry pour tester le port série.
+
+minicom -D /dev/ttyAMA0 
+
+Une fois dans minicom configurer le port série en pressant CTRL+A suivi de O. Pensez à déactiver le contrôle de flux matériel (on utilise pas les lignes RTS/CTS).
+Écrire quelques lettres au clavier. Si elles s'affichent, le loopback fonctionne (essayez en le débranchant).
+CTRL+A Q pour quitter minicom.
+
+
