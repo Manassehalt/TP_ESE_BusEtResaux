@@ -343,14 +343,28 @@ Dans le main on envoie regulierement des actualisation des mesures
 
 Configuration réseau du routeur utilisé en TP :
 
-SSID : ESE_Bus_Network
-Password : ilovelinux
+SSID : ESE_Bus_Network  Password : ilovelinux
+
 ou
+
 SSID : D060-2Ghz
+
 Password : ilovelinux
 
 Identifiant: nolan
-Mot de passe SSH: ESE
+
+Mot de passe SSH: ESE2021
+
+Pour activer le port série sur connecteur GPIO, sur la partition boot, nous modifions le fichier config.txt en utilisant sudo nano pour editer le fichier avec les ligne ci dessous:
+
+enable_uart=1
+dtoverlay=disable-bt
+
+Pour  dans le fichier cmdline.txt, pour que le noyau libère le port UART, retirez l'option suivante: 
+
+console=serial0,115200
+
+ne pas oublier de reboot pour valider les changement
 
 3.2. Port Série Loopback
 
@@ -364,4 +378,18 @@ Une fois dans minicom configurer le port série en pressant CTRL+A suivi de O. P
 Écrire quelques lettres au clavier. Si elles s'affichent, le loopback fonctionne (essayez en le débranchant).
 CTRL+A Q pour quitter minicom.
 
+Communication avec la STM32
 
+Nous modifions la fonction printf pour quelle affiche sur les 2 ports série en même temps. 
+
+Le protocole de communication entre le Raspberry et la STM32 est le suivant( Requête du RPi, Réponse du STM, Commentaire):
+
+GET_T 	T=+12.50_C 	   Température compensée sur 10 caractères
+
+GET_P 	P=102300Pa 	   Pression compensée sur 10 caractères
+
+SET_K=1234 	SET_K=OK 	Fixe le coefficient K (en 1/100e)
+
+GET_K 	K=12.34000 	   Coefficient K sur 10 caractères
+
+GET_A 	A=125.7000     Angle sur 10 caractères
