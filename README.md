@@ -399,13 +399,21 @@ GET_A 	A=125.7000     Angle sur 10 caractères
 ### 4.1. Installation du serveur Python
 
 Installation
-
+```
+sudo apt update
+sudo apt install pipenv
+pipenv --python 3
+pipenv install - p requirements.txt
+pip shell
+```
 Nous rajoutons un nouvel utilisateur différent de pi, avec les droits de sudo et  d'accès au port série (dialout):
 ```
-sudo adduser Nolan
-sudo usermod -aG sudo Nolan
+sudo adduser gabriel
+//mdp:torero2021
+sudo usermod -aG sudo gabriel
+sudo usermod -aG dialout gabriel
 ```
- Nous loguons en tant que Nolan
+ Nous logguons en tant que gabriel
  
 Il faut  installez pip pour python3 sur le Raspberry:
 ```
@@ -421,7 +429,7 @@ Il faut installer ces bibliothèques par la commande:
 ```
 pip3 install -r requirement.txt
 ```
-À nouveau, déloggue, puis reloggue en tant que Nolan pour mettre à jour le PATH et permettre de lancer flask.
+À nouveau, déloggue, puis reloggue en tant que gabriel pour mettre à jour le PATH et permettre de lancer flask.
 
 ### Premier fichier Web
 
