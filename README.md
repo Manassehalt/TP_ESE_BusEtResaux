@@ -399,7 +399,7 @@ GET_A 	A=125.7000     Angle sur 10 caractères
 ### 4.1. Installation du serveur Python
 
 Installation
-```
+```py
 sudo apt update
 sudo apt install pipenv
 pipenv --python 3
@@ -434,7 +434,7 @@ pip3 install -r requirement.txt
 ### Premier fichier Web
 
 Nous créeons un fichier hello.py avec le code suivant:
-```
+```py
 from flask import Flask
 app = Flask(__name__)
 
@@ -443,17 +443,17 @@ def hello_world():
     return 'Hello, World!\n'
 ```
 Nous lançons le nouveau serveur web avec:
-```
+```py
 pi@raspberrypi:~/server $ FLASK_APP=hello.py flask run
 ```
 test du serveur avec la commande curl (dans un 2e terminal):
-```
+```py
 pi@raspberrypi:~/server $ curl http://127.0.0.1:5000 -s -D -
 ```
 Les options -s -D - permettent de visualiser les headers de la réponse HTTP en particulier le champ Server
 
 Le serveur fonctionne sur la loopback. Cela est résolue avec:
-```
+```py
 pi@raspberrypi:~/server $ FLASK_APP=hello.py FLASK_ENV=development flask run --host 0.0.0.0
 ```
 La constante FLASK_ENV=development permet de lancer un mode debug. À partir de maintenant, vous pouvez tester votre serveur web avec un navigateur.
@@ -463,7 +463,7 @@ La constante FLASK_ENV=development permet de lancer un mode debug. À partir de 
 Première route
 
 Ajoutez les lignes suivantes au fichier hello.py:
-```
+```py
 welcome = "Welcome to 3ESE API!"
 
 @app.route('/api/welcome/')
@@ -480,8 +480,9 @@ Quel est le role du fragment <int:index>?
 
 Pour pouvoir prétendre être RESTful, votre serveur va devoir:
 
-    répondre sous forme JSON.
-    différencier les méthodes HTTP
+répondre sous forme JSON.
+
+différencier les méthodes HTTP
 
 C’est ce que nous allons voir maintenant.
 
@@ -490,7 +491,7 @@ Première page REST
 Réponse JSON
 
 Un module JSON est disponible dans la librairie standard de python: https://docs.python.org/3/library/json.html Le plus simple pour générer du JSON est d’utiliser la fonction json.dumps() sur un objet Python. Vous pouvez par exemple remplacer la dernière ligne de la fonction api_welcome_index par:
-```
+```py
 return json.dumps({"index": index, "val": welcome[index]})
 ```
 (oubliez pas le import json en début de fichier!)
@@ -499,7 +500,7 @@ Testez le résultat. Est-ce suffisant pour dire que la réponse est bien du JSON
 1re solution
 
 Il faut modifier la réponse renvoyée par flask, en ajoutant au contenu du return des entêtes personnalisés sous forme d’un dictionnaire:
-```
+```py
 return json.dumps({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
 ```
 À partir de maintenant la réponse est bien du JSON, et Firefox vous présente le résultat de manière différente (Chrome aussi, mais c’est moins visible).
@@ -515,7 +516,7 @@ Il arrive souvent que les URL demandées soient fausses, il faut donc que votre 
 Téléchargez le fichiers page_not_found.html (en ressource) et placez le dans un nouveau répertoire templates (nom de chemin imposé par flask). Le plus simple pour créer ce fichier est de créer un fichier vide, puis de copier-coller son contenu (<shift>+<insert> sous windows). Une autre solution est d'utiliser un utilitaire de copie sur ssh: scp (pscp sous windows, à télécharger sur le site: https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
 
 Ajoutez les lignes suivantes à votre hello.py:
-```
+```py
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
