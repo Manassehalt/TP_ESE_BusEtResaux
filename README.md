@@ -446,6 +446,7 @@ Nous lançons le nouveau serveur web avec:
 ```py
 pi@raspberrypi:~/server $ FLASK_APP=hello.py flask run
 ```
+<p align="center"> <img src="preuve serveur.PNG" width="100%" height="auto" /> </p>
 test du serveur avec la commande curl (dans un 2e terminal):
 ```py
 pi@raspberrypi:~/server $ curl http://127.0.0.1:5000 -s -D -
@@ -474,6 +475,7 @@ def api_welcome():
 def api_welcome_index(index):
     return welcome[index]
 ```
+<p align="center"> <img src="Preuve nouvelle version.PNG" width="100%" height="auto" /> </p>
 Quel est le rôle du décorateur @app.route?
 
 Quel est le role du fragment <int:index>?
