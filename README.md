@@ -448,7 +448,7 @@ pi@raspberrypi:~/server $ FLASK_APP=hello.py flask run
 ```
 test du serveur avec la commande curl (dans un 2e terminal):
 ```
-pi@raspberrypi:~/server $ curl http://127.0.0.1:5000
+pi@raspberrypi:~/server $ curl http://127.0.0.1:5000 -s -D -
 ```
 Les options -s -D - permettent de visualiser les headers de la réponse HTTP en particulier le champ Server
 
