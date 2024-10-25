@@ -10,7 +10,7 @@ Objectif: Interfacer un STM32 avec des capteurs I²C
 La première étape est de mettre en place la communication entre le microcontrôleur et les capteurs (température, pression, accéléromètre...) via  le bus I²C.
 Le capteur comporte 2 composants I²C, qui partagent le même bus. Le STM32 jouera le rôle de Master sur le bus.Le code du STM32 sera écrit en langage C, en utilisant la bibliothèque HAL.
 
-2.1. Capteur BMP280 
+### 2.1. Capteur BMP280 
 
 Mise en œuvre du BMP280
 À partir de la datasheet du BMP280, nous identifions les éléments suivants:
@@ -37,7 +37,7 @@ Mise en œuvre du BMP280
    - Les formules de compensation pour la température et la pression sont données à la page 
 22. Elles nécessitent l'utilisation des coefficients d'étalonnage et sont basées sur un algorithme en virgule fixe sur 32 bits.
 
-2.2. Setup du STM32
+### 2.2. Setup du STM32
 
 Configuration du STM32
 
@@ -61,7 +61,7 @@ while (1) {
     }
  }
 ```
-2.3. Communication I²C
+### 2.3. Communication I²C
 
 Primitives I²C sous STM32_HAL
 
@@ -105,7 +105,7 @@ uint8_t bmp280_read_id(void)
 ```
 Nous avons rajouté ce code pour verifier si l'ID étais bien presente.
 
-Configuration du BMP280
+### Configuration du BMP280
 
 Avant de pouvoir faire une mesure, il faut configurer le BMP280.
 
@@ -178,7 +178,7 @@ void bmp280_read_calibration(BMP280_CalibData *calib)
    calib->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
 }
 ```
-Apparamment c'est la seule méthode de le faire
+Apparemment c'est la seule méthode de le faire
 ```C
 void bmp280_read_raw_data(int32_t *temperature, int32_t *pressure)
 {
@@ -192,7 +192,7 @@ void bmp280_read_raw_data(int32_t *temperature, int32_t *pressure)
    *temperature = (int32_t)(((data[3] << 16) | (data[4] << 8) | data[5]) >> 4);
 }
 ```
-Calcul des températures et des pression compensées
+### Calcul des températures et des pression compensées
 
 Il faut retrouvez dans la datasheet du STM32 le code permettant de compenser la température et la pression à l'aide des valeurs de l'étalonnage au format entier 32 bits (on utilisera pas les flottants pour des problèmes de performance).
 
@@ -339,7 +339,7 @@ Dans le main on envoie regulierement des actualisation des mesures
 
 ## TP2 - Interfaçage STM32 - Raspberry
 
-3.1. Mise en route du Raspberry PI Zéro
+### 3.1. Mise en route du Raspberry PI Zéro
 
 Configuration réseau du routeur utilisé en TP :
 
@@ -366,7 +366,7 @@ console=serial0,115200
 
 ne pas oublier de reboot pour valider les changement
 
-3.2. Port Série Loopback
+### 3.2. Port Série Loopback
 
 Branchez le port série du Raspberry en boucle: RX sur TX.
 
@@ -393,3 +393,127 @@ SET_K=1234 	SET_K=OK 	Fixe le coefficient K (en 1/100e)
 GET_K 	K=12.34000 	   Coefficient K sur 10 caractères
 
 GET_A 	A=125.7000     Angle sur 10 caractères
+
+## TP3 - Interface REST
+
+### 4.1. Installation du serveur Python
+
+Installation
+
+Nous rajoutons un nouvel utilisateur différent de pi, avec les droits de sudo et  d'accès au port série (dialout):
+```
+sudo adduser Nolan
+sudo usermod -aG sudo Nolan
+```
+ Nous loguons en tant que Nolan
+ 
+Il faut  installez pip pour python3 sur le Raspberry:
+```
+sudo apt update
+sudo apt install python3-pip
+```
+Nous créeons un répertoire pour le développement de votre serveur avec un fichier nommé requirement.txt:
+```
+pyserial
+flask
+```
+Il faut installer ces bibliothèques par la commande: 
+```
+pip3 install -r requirement.txt
+```
+À nouveau, déloggue, puis reloggue en tant que Nolan pour mettre à jour le PATH et permettre de lancer flask.
+
+### Premier fichier Web
+
+Nous créeons un fichier hello.py avec le code suivant:
+```
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!\n'
+```
+Nous lançons le nouveau serveur web avec:
+```
+pi@raspberrypi:~/server $ FLASK_APP=hello.py flask run
+
+test du serveur avec la commande curl (dans un 2e terminal):
+```
+pi@raspberrypi:~/server $ curl http://127.0.0.1:5000
+```
+Les options -s -D - permettent de visualiser les headers de la réponse HTTP en particulier le champ Server
+
+Le serveur fonctionne sur la loopback. Cela est résolue avec:
+
+pi@raspberrypi:~/server $ FLASK_APP=hello.py FLASK_ENV=development flask run --host 0.0.0.0
+
+La constante FLASK_ENV=development permet de lancer un mode debug. À partir de maintenant, vous pouvez tester votre serveur web avec un navigateur.
+
+### 4.2. Première page REST
+
+Première route
+
+Ajoutez les lignes suivantes au fichier hello.py:
+```
+welcome = "Welcome to 3ESE API!"
+
+@app.route('/api/welcome/')
+def api_welcome():
+    return welcome
+    
+@app.route('/api/welcome/<int:index>')
+def api_welcome_index(index):
+    return welcome[index]
+```
+Quel est le rôle du décorateur @app.route?
+
+Quel est le role du fragment <int:index>?
+
+Pour pouvoir prétendre être RESTful, votre serveur va devoir:
+
+    répondre sous forme JSON.
+    différencier les méthodes HTTP
+
+C’est ce que nous allons voir maintenant.
+
+
+Première page REST
+Réponse JSON
+
+Un module JSON est disponible dans la librairie standard de python: https://docs.python.org/3/library/json.html Le plus simple pour générer du JSON est d’utiliser la fonction json.dumps() sur un objet Python. Vous pouvez par exemple remplacer la dernière ligne de la fonction api_welcome_index par:
+
+return json.dumps({"index": index, "val": welcome[index]})
+
+(oubliez pas le import json en début de fichier!)
+
+Testez le résultat. Est-ce suffisant pour dire que la réponse est bien du JSON? Observez en particulier les entêtes de la réponse: sous Firefox ou Chrome ouvrez les outils de développement (F12), selectionnez l’onglet “réseau” et rechargez la page. Vous pouvez normalement trouver l’entête de réponse Content-Type: ce n’est pas du JSON!
+1re solution
+
+Il faut modifier la réponse renvoyée par flask, en ajoutant au contenu du return des entêtes personnalisés sous forme d’un dictionnaire:
+
+return json.dumps({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
+
+À partir de maintenant la réponse est bien du JSON, et Firefox vous présente le résultat de manière différente (Chrome aussi, mais c’est moins visible).
+2e solution
+
+L’utilisation de json avec flask étant très fréquente, une fonction jsonify() existe dans la bibliothèque. Elle est accessible après un from flask import jsonify. Cette fonction gère à la fois la conversion en json et l’ajout de l’entête.
+
+Modifiez votre code pour utiliser jsonify et testez le.
+Erreur 404
+
+Il arrive souvent que les URL demandées soient fausses, il faut donc que votre serveur renvoie une erreur 404.
+
+Téléchargez le fichiers page_not_found.html (en ressource) et placez le dans un nouveau répertoire templates (nom de chemin imposé par flask). Le plus simple pour créer ce fichier est de créer un fichier vide, puis de copier-coller son contenu (<shift>+<insert> sous windows). Une autre solution est d'utiliser un utilitaire de copie sur ssh: scp (pscp sous windows, à télécharger sur le site: https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
+
+Ajoutez les lignes suivantes à votre hello.py:
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
+
+Ainsi vous contrôlez la page d’erreur 404.
+
+Modifiez la fonctions api_welcome_index de manière à retourner cette page 404 si jamais l’index n’est pas correct. Flask fournit une fonction pour cela : abort(404).
+
+Une autre méthode aurai pu être utilisée: redirect avec url_for. plus d’info: https://flask.palletsprojects.com/en/1.1.x/quickstart/#redirects-and-errors
