@@ -561,4 +561,15 @@ if (temperature_comp != last_temperature)
 	          last_angle = angle;
 	          last_temperature = temperature_comp;
 	      }
+
+
+
+
+![Confimation](https://github.com/user-attachments/assets/52ca7cfa-44e5-468b-bc0b-5084ed29de77)
+
+
+
+
+
+
 ```
