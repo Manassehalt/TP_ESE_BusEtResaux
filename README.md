@@ -72,12 +72,13 @@ Identification du BMP280
 L'identification du BMP280 consiste en la lecture du registre ID
 
 En I²C, la lecture se déroule de la manière suivante:
+>[!Warning]
+>envoyer l'adresse du registre ID puis recevoir 1 octet correspondant au contenu du registre
+>```C
+>#define BMP280_I2C_ADDRESS (0x77 << 1)
+>```
+>L'adresse est indiqué directement sur la seriographie attention au decalage de 1 bit!!
 
-envoyer l'adresse du registre ID puis recevoir 1 octet correspondant au contenu du registre
-```C
-#define BMP280_I2C_ADDRESS (0x77 << 1)
-```
-L'adresse est indiqué directement sur la seriographie attention au decalage de 1 bit!!
 ```C
 uint8_t bmp280_read_id(void)
 {
@@ -89,21 +90,20 @@ uint8_t bmp280_read_id(void)
 }
 
 ```
- Le registre "id" est 0xD0, et la valeur d'identification est 0x58.Il est preferable d'utiliser check ID plutot que read ID
-```C
-
-
- uint8_t id = bmp280_read_id();
-    if (id == 0x58)
-    {
-        printf("BMP280 detected! ID: 0x%02X\r\n", id);
-    }
-    else
-    {
-        printf("Failed to detect BMP280. ID: 0x%02X\r\n", id);
-    }
-```
-Nous avons rajouté ce code pour verifier si l'ID étais bien presente.
+>[!Tip]
+> Le registre "id" est 0xD0, et la valeur d'identification est 0x58.Il est preferable d'utiliser check ID plutot que read ID
+>```C
+> uint8_t id = bmp280_read_id();
+>   if (id == 0x58)
+>    {
+>        printf("BMP280 detected! ID: 0x%02X\r\n", id);
+>    }
+>    else
+>    {
+>        printf("Failed to detect BMP280. ID: 0x%02X\r\n", id);
+>    }
+>```
+>Nous avons rajouté ce code pour verifier si l'ID étais bien presente.
 
 ### Configuration du BMP280
 
@@ -341,30 +341,32 @@ Dans le main on envoie regulierement des actualisation des mesures
 
 ### 3.1. Mise en route du Raspberry PI Zéro
 
-Configuration réseau du routeur utilisé en TP :
+>[!Note]
+>Configuration réseau du routeur utilisé en TP :
+>SSID : ESE_Bus_Network  Password : ilovelinux
+>
+>ou
+>
+>SSID : D060-2Ghz
+>
+>Password : ilovelinux
+>
+>Identifiant: nolan
+>
+>Mot de passe SSH: ESE2021
+>
+>Pour activer le port série sur connecteur GPIO, sur la partition boot, nous modifions le fichier config.txt en utilisant sudo nano pour editer le fichier avec les ligne ci dessous:
+>```
+>enable_uart=1
+>dtoverlay=disable-bt
+>```
+>Pour  dans le fichier cmdline.txt, pour que le noyau libère le port UART, retirez l'option suivante: 
+>```
+>console=serial0,115200
+>```
 
-SSID : ESE_Bus_Network  Password : ilovelinux
-
-ou
-
-SSID : D060-2Ghz
-
-Password : ilovelinux
-
-Identifiant: nolan
-
-Mot de passe SSH: ESE2021
-
-Pour activer le port série sur connecteur GPIO, sur la partition boot, nous modifions le fichier config.txt en utilisant sudo nano pour editer le fichier avec les ligne ci dessous:
-```
-enable_uart=1
-dtoverlay=disable-bt
-```
-Pour  dans le fichier cmdline.txt, pour que le noyau libère le port UART, retirez l'option suivante: 
-```
-console=serial0,115200
-```
-ne pas oublier de reboot pour valider les changement
+>[!Warning]
+>ne pas oublier de reboot pour valider les changement
 
 ### 3.2. Port Série Loopback
 
