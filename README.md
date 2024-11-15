@@ -534,3 +534,35 @@ Une autre méthode aurai pu être utilisée: redirect avec url_for. plus d’inf
 ## Objectif: Développement d'une API Rest et mise en place d'un périphérique sur bus CAN
 ## 5.1. Pilotage du moteur
 ## 5.2. Interfaçage avec le capteur
+
+
+
+
+
+if (temperature_comp / 100 != last_temperature)
+	      {
+	          // Conversion de la température compensée en angle
+	          int angle = (int)(temperature_comp / 100);
+	          if (angle > 360) angle = 360;  // Limitation à 360°
+	          if (angle < 0) angle = 0;      // Limitation à 0°
+
+	          // Détermination de la direction en fonction de l'angle et de la température précédente
+	          uint8_t direction = (temperature_comp / 100 > last_temperature) ? 0x01 : 0x00;  // 0x01 pour horaire, 0x00 pour anti-horaire
+
+	          // Configuration des données CAN
+	          CAN_data[0] = direction;  // Direction
+	          CAN_data[1] = (uint8_t)angle;  // Angle calculé
+	          CAN_data[2] = 0x01;
+
+	          // Envoi de la trame CAN
+	          if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, CAN_data, &TxMailbox) != HAL_OK) {
+	              printf("Erreur lors de l'envoi de la trame CAN\r\n");
+	              Error_Handler();
+	          } else {
+	              printf("Trame CAN envoyée avec succès : direction = %s, angle = %d\r\n", direction == 0x01 ? "horaire" : "anti-horaire", angle);
+	          }
+
+	          // Mise à jour de l'angle précédent et de la température précédente
+	          last_angle = angle;
+	          last_temperature = temperature_comp / 100;
+	      }
