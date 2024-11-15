@@ -1,7 +1,7 @@
 # TP_ESE_BusEtResaux
 
 Compte rendu de Nolan Jacquot et Gabriel Guiffault
-## TP 1 - Bus I2C
+# TP 1 - Bus I2C
 
 Objectif: Interfacer un STM32 avec des capteurs I²C
 
@@ -337,9 +337,9 @@ Dans le main on envoie regulierement des actualisation des mesures
 }
 ```
 
-## TP2 - Interfaçage STM32 - Raspberry
+# TP2 - Interfaçage STM32 - Raspberry
 
-### 3.1. Mise en route du Raspberry PI Zéro
+## 3.1. Mise en route du Raspberry PI Zéro
 
 >[!Note]
 >Configuration réseau du routeur utilisé en TP :
@@ -396,9 +396,9 @@ GET_K 	K=12.34000 	   Coefficient K sur 10 caractères
 
 GET_A 	A=125.7000     Angle sur 10 caractères
 
-## TP3 - Interface REST
+# TP3 - Interface REST
 
-### 4.1. Installation du serveur Python
+## 4.1. Installation du serveur Python
 
 Installation
 ```py
@@ -530,3 +530,7 @@ Ainsi vous contrôlez la page d’erreur 404.
 Modifiez la fonctions api_welcome_index de manière à retourner cette page 404 si jamais l’index n’est pas correct. Flask fournit une fonction pour cela : abort(404).
 
 Une autre méthode aurai pu être utilisée: redirect avec url_for. plus d’info: https://flask.palletsprojects.com/en/1.1.x/quickstart/#redirects-and-errors
+# 5. TP4 - Bus CAN
+## Objectif: Développement d'une API Rest et mise en place d'un périphérique sur bus CAN
+## 5.1. Pilotage du moteur
+## 5.2. Interfaçage avec le capteur
